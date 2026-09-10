@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장르별 게임 추천 서비스</title>
+  <style>
+    /* 기본 스타일 초기화 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+    }
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: #94a3b8;
+    }
+
+    /* 장르 선택 버튼 구역 */
+    .genre-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 900px;
+      margin-bottom: 40px;
+    }
+
+    .genre-btn {
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 2px solid #334155;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .genre-btn:hover {
+      background-color: #334155;
+      color: #ffffff;
+      border-color: #38bdf8;
+    }
+
+    .genre-btn.active {
+      background-color: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
+
+    .random-btn {
+      background-color: #a855f7;
+      border-color: #a855f7;
+      color: #ffffff;
+    }
+
+    .random-btn:hover {
+      background-color: #9333ea;
+      border-color: #9333ea;
+    }
+
+    /* 게임 카드 목록 구역 */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .game-card {
+      background-color: #1e293b;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .game-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.2);
+    }
+
+    .game-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .card-badge {
+      align-self: flex-start;
+      background-color: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .empty-message {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      padding: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎮 게임 취향 추천소</h1>
+    <p>원하는 장르를 선택하면 어울리는 게임을 추천해 드립니다.</p>
+  </header>
+
+  <!-- 장르 버튼 목록 -->
+  <div class="genre-container">
+    <button class="genre-btn active" onclick="selectGenre('전체', this)">전체보기</button>
+    <button class="genre-btn" onclick="selectGenre('RPG', this)">🛡️ RPG</button>
+    <button class="genre-btn" onclick="selectGenre('액션', this)">⚔️ 액션</button>
+    <button class="genre-btn" onclick="selectGenre('FPS/슈팅', this)">🎯 FPS/슈팅</button>
+    <button class="genre-btn" onclick="selectGenre('힐링/시뮬', this)">🌱 힐링/시뮬레이션</button>
+    <button class="genre-btn" onclick="selectGenre('전략', this)">🧠 전략</button>
+    <button class="genre-btn random-btn" onclick="pickRandomGame()">🎲 랜덤 1개 추천</button>
+  </div>
+
+  <!-- 게임 결과 출력 영역 -->
+  <main class="game-grid" id="gameGrid">
+    <!-- 자바스크립트로 카드가 자동 생성됩니다 -->
+  </main>
+
+  <script>
+    // 추천 게임 데이터 (총 20개)
+    const gameList = [
+      // --- RPG ---
+      {
+        title: "발더스 게이트 3",
+        genre: "RPG",
+        desc: "높은 자유도와 치밀한 스토리텔링이 돋보이는 최고 수준의 D&D 턴제 RPG.",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500"
+      },
+      {
+        title: "위쳐 3: 와일드 헌트",
+        genre: "RPG",
+        desc: "괴물 사냥꾼 게롤트가 되어 떠나는 깊이 있는 스토리 중심의 오픈월드 RPG.",
+        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500"
+      },
+      {
+        title: "사이퍼펑크 2077",
+        genre: "RPG",
+        desc: "화려하고 거대한 미래도시 나이트 시티를 배경으로 펼쳐지는 오픈월드 RPG.",
+        image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500"
+      },
+      {
+        title: "포켓몬스터 스칼렛·바이올렛",
+        genre: "RPG",
+        desc: "넓은 팔데아지방을 자유롭게 모험하며 다양한 포켓몬을 수집하는 오픈월드 RPG.",
+        image: "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?w=500"
+      },
+
+      // --- 액션 ---
+      {
+        title: "엘든 링",
+        genre: "액션",
+        desc: "광활한 오픈월드 속에서 펼쳐지는 압도적 몰입감의 다크 판타지 액션.",
+        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500"
+      },
+      {
+        title: "산나비 (SANABI)",
+        genre: "액션",
+        desc: "조선 사이버펑크 세계관을 배경으로 사슬갈고리를 활용한 스피디한 플랫포머 액션.",
+        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500"
+      },
+      {
+        title: "몬스터 헌터 월드",
+        genre: "액션",
+        desc: "웅장한 자연 속에서 거대한 몬스터를 수렵하는 타격감 넘치는 액션 게임.",
+        image: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500"
+      },
+      {
+        title: "하데스 (Hades)",
+        genre: "액션",
+        desc: "지옥을 탈출하려는 저승의 왕자의 이야기를 다룬 화려하고 중독성 높은 로그라이크 액션.",
+        image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=500"
+      },
+
+      // --- FPS/슈팅 ---
+      {
+        title: "오버워치 2",
+        genre: "FPS/슈팅",
+        desc: "다양한 영웅들의 고유 기술을 활용해 협동하여 싸우는 하이퍼 슈팅 게임.",
+        image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=500"
+      },
+      {
+        title: "발로란트 (VALORANT)",
+        genre: "FPS/슈팅",
+        desc: "정교한 사격과 캐릭터별 전술 스킬이 결합된 5v5 전술 정밀 슈팅 게임.",
+        image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=500"
+      },
+      {
+        title: "에이펙스 레전드",
+        genre: "FPS/슈팅",
+        desc: "스피디한 이동과 독특한 레전드 스킬을 기반으로 한 스쿼드 배틀로얄 슈팅.",
+        image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500"
+      },
+      {
+        title: "배틀그라운드",
+        genre: "FPS/슈팅",
+        desc: "100명의 플레이어가 생존을 위해 경쟁하는 파밍과 전략 중심의 배틀로얄.",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500"
+      },
+
+      // --- 힐링/시뮬레이션 ---
+      {
+        title: "모여봐요 동물의 숲",
+        genre: "힐링/시뮬",
+        desc: "무인도에서 귀여운 동물 주민들과 함께 나만의 섬을 꾸미는 힐링 게임.",
+        image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=500"
+      },
+      {
+        title: "스타듀 밸리",
+        genre: "힐링/시뮬",
+        desc: "시골 마을에서 농사를 짓고 가축을 키우며 주민들과 교류하는 귀여운 도트 게임.",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500"
+      },
+      {
+        title: "데이브 더 다이버",
+        genre: "힐링/시뮬",
+        desc: "낮에는 신비로운 바다를 탐험하고 밤에는 초밥집을 운영하는 하이브리드 해양 어드벤처.",
+        image: "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=500"
+      },
+      {
+        title: "심즈 4 (The Sims 4)",
+        genre: "힐링/시뮬",
+        desc: "나만의 캐릭터를 만들고 집을 건축하며 다양한 삶의 순간을 구현하는 인생 시뮬레이션.",
+        image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500"
+      },
+
+      // --- 전략 ---
+      {
+        title: "문명 VI",
+        genre: "전략",
+        desc: "석기 시대부터 현대까지 자신만의 제국을 건설하고 발전시키는 턴제 전략 게임.",
+        image: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=500"
+      },
+      {
+        title: "스타크래프트 리마스터",
+        genre: "전략",
+        desc: "테란, 저그, 프로토스 세 종족의 치열한 전쟁을 다룬 실시간 전략(RTS)의 전설.",
+        image: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500"
+      },
+      {
+        title: "클래시 로얄",
+        genre: "전략",
+        desc: "카드 덱을 구성하여 실시간으로 상대 타워를 공략하는 빠른 템포의 전략 카드 게임.",
+        image: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=500"
+      },
+      {
+        title: "팀파이트 타쿠틱스 (TFT / 롤토체스)",
+        genre: "전략",
+        desc: "챔피언 조합과 아이템 배치를 고려하여 최후의 1인이 될 때까지 겨루는 오토배틀러 전략.",
+        image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=500"
+      }
+    ];
+
+    // 화면에 게임 카드 목록을 출력하는 함수
+    function renderGames(list) {
+      const grid = document.getElementById('gameGrid');
+      grid.innerHTML = '';
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="empty-message">해당 장르의 추천 게임이 없습니다.</div>`;
+        return;
+      }
+
+      list.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+          <img src="${game.image}" alt="${game.title}">
+          <div class="card-content">
+            <span class="card-badge">${game.genre}</span>
+            <h3 class="card-title">${game.title}</h3>
+            <p class="card-desc">${game.desc}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 장르 선택 처리 함수
+    function selectGenre(genre, button) {
+      // 모든 버튼 활성화 해제 후 클릭한 버튼만 활성화
+      const buttons = document.querySelectorAll('.genre-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      if (genre === '전체') {
+        renderGames(gameList);
+      } else {
+        const filtered = gameList.filter(game => game.genre === genre);
+        renderGames(filtered);
+      }
+    }
+
+    // 랜덤 게임 1개 선택 기능
+    function pickRandomGame() {
+      const buttons = document.querySelectorAll('.genre-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+
+      const randomIndex = Math.floor(Math.random() * gameList.length);
+      const selectedGame = [gameList[randomIndex]];
+      
+      renderGames(selectedGame);
+    }
+
+    // 처음 페이지 로드 시 전체 게임 표시
+    renderGames(gameList);
+  </script>
+
+</body>
+</html>
