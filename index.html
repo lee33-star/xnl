@@ -3,366 +3,423 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>장르별 게임 추천 서비스</title>
+  <title>mealdata - 맞춤형 급식 분석 플랫폼</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* 기본 스타일 초기화 */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; }
+    
+    .fade-enter {
+      opacity: 0;
+      transform: translateY(10px);
     }
-
-    body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
+    .fade-enter-active {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
-
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    header h1 {
-      font-size: 2.2rem;
-      color: #38bdf8;
-      margin-bottom: 10px;
-    }
-
-    header p {
-      color: #94a3b8;
-    }
-
-    /* 장르 선택 버튼 구역 */
-    .genre-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      max-width: 900px;
-      margin-bottom: 40px;
-    }
-
-    .genre-btn {
-      background-color: #1e293b;
-      color: #cbd5e1;
-      border: 2px solid #334155;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .genre-btn:hover {
-      background-color: #334155;
-      color: #ffffff;
-      border-color: #38bdf8;
-    }
-
-    .genre-btn.active {
-      background-color: #38bdf8;
-      color: #0f172a;
-      border-color: #38bdf8;
-    }
-
-    .random-btn {
-      background-color: #a855f7;
-      border-color: #a855f7;
-      color: #ffffff;
-    }
-
-    .random-btn:hover {
-      background-color: #9333ea;
-      border-color: #9333ea;
-    }
-
-    /* 게임 카드 목록 구역 */
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 24px;
-      width: 100%;
-      max-width: 1100px;
-    }
-
-    .game-card {
-      background-color: #1e293b;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .game-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.2);
-    }
-
-    .game-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-    }
-
-    .card-content {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-
-    .card-badge {
-      align-self: flex-start;
-      background-color: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    .card-desc {
-      color: #94a3b8;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    .empty-message {
-      grid-column: 1 / -1;
-      text-align: center;
-      color: #64748b;
-      font-size: 1.1rem;
-      padding: 40px;
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
     }
   </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <header>
-    <h1>🎮 게임 취향 추천소</h1>
-    <p>원하는 장르를 선택하면 어울리는 게임을 추천해 드립니다.</p>
-  </header>
+  <!-- 1. LANDING / HERO SCREEN (시작 화면) -->
+  <div id="landingScreen" class="min-h-screen flex flex-col justify-between bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 text-white relative overflow-hidden">
+    
+    <!-- Decorative Background Shapes -->
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+    <div class="absolute top-1/2 -right-24 w-96 h-96 bg-purple-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
 
-  <!-- 장르 버튼 목록 -->
-  <div class="genre-container">
-    <button class="genre-btn active" onclick="selectGenre('전체', this)">전체보기</button>
-    <button class="genre-btn" onclick="selectGenre('RPG', this)">🛡️ RPG</button>
-    <button class="genre-btn" onclick="selectGenre('액션', this)">⚔️ 액션</button>
-    <button class="genre-btn" onclick="selectGenre('FPS/슈팅', this)">🎯 FPS/슈팅</button>
-    <button class="genre-btn" onclick="selectGenre('힐링/시뮬', this)">🌱 힐링/시뮬레이션</button>
-    <button class="genre-btn" onclick="selectGenre('전략', this)">🧠 전략</button>
-    <button class="genre-btn random-btn" onclick="pickRandomGame()">🎲 랜덤 1개 추천</button>
+    <!-- Header / Brand Logo -->
+    <header class="p-6 max-w-5xl mx-auto w-full flex justify-between items-center z-10">
+      <div class="flex items-center space-x-2">
+        <div class="bg-indigo-500/30 p-2 rounded-xl backdrop-blur-md border border-indigo-400/30">
+          <i class="fa-solid fa-utensils text-2xl text-indigo-300"></i>
+        </div>
+        <span class="text-2xl font-black tracking-tight text-white">mealdata</span>
+      </div>
+      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/20 backdrop-blur-sm">
+        v2.0 스마트 맞춤 분석
+      </span>
+    </header>
+
+    <!-- Hero Content -->
+    <main class="max-w-4xl mx-auto px-6 py-12 text-center z-10 my-auto">
+      <div class="inline-flex items-center gap-2 bg-indigo-700/40 border border-indigo-500/30 px-4 py-1.5 rounded-full text-xs font-semibold text-indigo-200 mb-6 backdrop-blur-md">
+        <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> 나의 식성 · 맵기 · 알레르기 완벽 반영
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl font-black leading-tight tracking-tight mb-6">
+        오늘 학교 급식,<br>
+        <span class="bg-gradient-to-r from-indigo-300 via-sky-300 to-emerald-300 bg-clip-text text-transparent">
+          나에게 정말 안전할까?
+        </span>
+      </h1>
+
+      <p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+        개인 맞춤 맵기 레벨부터 알레르기 유발 성분까지.<br class="hidden sm:inline">
+        <b>mealdata</b>가 오늘의 메뉴를 정밀 분석하여 나만을 위한 급식 리포트를 제공합니다.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <button id="startAppBtn" class="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all transform hover:-translate-y-0.5 text-base flex items-center justify-center gap-2">
+          <span>나의 맞춤 분석 시작하기</span>
+          <i class="fa-solid fa-arrow-right text-sm"></i>
+        </button>
+        <button id="quickDemoBtn" class="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-4 rounded-2xl border border-white/20 transition backdrop-blur-md text-base">
+          샘플 데이터로 체험하기
+        </button>
+      </div>
+
+      <!-- Feature Grid Icons -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 text-left max-w-3xl mx-auto">
+        <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
+          <div class="text-indigo-400 font-bold mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved"></i> 19종 알레르기
+          </div>
+          <p class="text-xs text-slate-400">나이스 공식 식단 표기 성분을 자동 감지하여 경고합니다.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
+          <div class="text-rose-400 font-bold mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-pepper-hot"></i> 맵기 단계 측정
+          </div>
+          <p class="text-xs text-slate-400">키워드 분석으로 내가 감당 가능한 매운맛인지 판별합니다.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
+          <div class="text-emerald-400 font-bold mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-chart-line"></i> 종합 적합도 점수
+          </div>
+          <p class="text-xs text-slate-400">내 프로필 정보를 바탕으로 100점 만점 기준 점수를 계산합니다.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Footer -->
+    <footer class="p-6 text-center text-xs text-indigo-300/60 z-10">
+      © 2026 mealdata. All rights reserved.
+    </footer>
   </div>
 
-  <!-- 게임 결과 출력 영역 -->
-  <main class="game-grid" id="gameGrid">
-    <!-- 자바스크립트로 카드가 자동 생성됩니다 -->
-  </main>
+  <!-- 2. MAIN APP CONTAINER (급식 분석 메인 앱) -->
+  <div id="mainAppScreen" class="hidden min-h-screen flex-col">
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <button id="goHomeBtn" class="flex items-center space-x-3 text-left hover:opacity-90 transition">
+          <div class="bg-white text-indigo-600 p-2 rounded-xl shadow-inner font-black text-xl">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">mealdata</h1>
+            <p class="text-xs text-indigo-200">개인 맞춤형 식단 영양 & 성분 분석 플랫폼</p>
+          </div>
+        </button>
+        <button id="resetProfileBtn" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-lg transition flex items-center gap-1 text-indigo-100">
+          <i class="fa-solid fa-rotate-right"></i> 설정 초기화
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6 pb-16 w-full flex-1">
+
+      <!-- Profile Setup Section -->
+      <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-user-gear text-indigo-600"></i> 1. 나의 식성 및 알레르기 프로필
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Spicy Level -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">
+              맵기 섭취 가능 정도 (1~5단계)
+            </label>
+            <div class="flex items-center space-x-2">
+              <input type="range" id="spicyLevel" min="1" max="5" value="3" class="w-full accent-indigo-600 cursor-pointer">
+              <span id="spicyBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">
+                Lv.3 (신라면)
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">지정한 수준 이상의 매운 음식이 감지되면 주의를 표기합니다.</p>
+          </div>
+
+          <!-- Preference -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">선호 식성 스타일</label>
+            <select id="dietaryPreference" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="all">상관없음 (모두 잘 먹음)</option>
+              <option value="meat">육류 선호 (고기파)</option>
+              <option value="veggie">채식 선호 (야채파)</option>
+              <option value="seafood">해산물 선호</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Allergy Checkboxes -->
+        <div class="mt-6">
+          <label class="block text-sm font-semibold text-slate-700 mb-2">
+            알레르기 유발 성분 선택 (나이스 공식 19종)
+          </label>
+          <div id="allergyContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs"></div>
+        </div>
+      </section>
+
+      <!-- Menu Input Section -->
+      <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-indigo-600"></i> 2. 오늘의 급식 식단 입력
+          </h2>
+          <!-- Preset Buttons -->
+          <div class="flex gap-1.5 text-xs">
+            <button id="presetBtn1" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">샘플 A (매콤)</button>
+            <button id="presetBtn2" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">샘플 B (순한맛)</button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mb-3">오늘의 급식 메뉴를 한 줄에 하나씩 입력하거나 붙여넣으세요. (숫자 알레르기 코드 포함 가능)</p>
+
+        <textarea id="menuInput" rows="5" placeholder="예시 입력:&#10;차조밥&#10;해물짬뽕국5.6.8.9.10.13.17.18.&#10;매운돼지갈비찜10.13.&#10;계란말이1.5.&#10;배추김치9.13.&#10;멜론" 
+          class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition font-mono leading-relaxed resize-none"></textarea>
+
+        <div class="mt-4 flex justify-end">
+          <button id="analyzeMealBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> mealdata 맞춤 분석 실행
+          </button>
+        </div>
+      </section>
+
+      <!-- Analysis Result Section -->
+      <section id="analysisResultSection" class="hidden bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-indigo-600"></i> mealdata 분석 리포트
+            </h2>
+            <p class="text-xs text-slate-500">등록하신 프로필을 기준으로 정밀 분석한 결과입니다.</p>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-400">종합 적합도 Score</div>
+            <div id="suitabilityScore" class="text-3xl font-black text-indigo-600">0점</div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div id="allergyAlertBox" class="p-4 rounded-xl border"></div>
+          <div id="spicyAlertBox" class="p-4 rounded-xl border"></div>
+          <div id="preferenceAlertBox" class="p-4 rounded-xl border"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <script>
-    // 추천 게임 데이터 (총 20개)
-    const gameList = [
-      // --- RPG ---
-      {
-        title: "발더스 게이트 3",
-        genre: "RPG",
-        desc: "높은 자유도와 치밀한 스토리텔링이 돋보이는 최고 수준의 D&D 턴제 RPG.",
-        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500"
-      },
-      {
-        title: "위쳐 3: 와일드 헌트",
-        genre: "RPG",
-        desc: "괴물 사냥꾼 게롤트가 되어 떠나는 깊이 있는 스토리 중심의 오픈월드 RPG.",
-        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500"
-      },
-      {
-        title: "사이퍼펑크 2077",
-        genre: "RPG",
-        desc: "화려하고 거대한 미래도시 나이트 시티를 배경으로 펼쳐지는 오픈월드 RPG.",
-        image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500"
-      },
-      {
-        title: "포켓몬스터 스칼렛·바이올렛",
-        genre: "RPG",
-        desc: "넓은 팔데아지방을 자유롭게 모험하며 다양한 포켓몬을 수집하는 오픈월드 RPG.",
-        image: "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?w=500"
-      },
+    // --- Constants ---
+    const NEIS_ALLERGIES = {
+      1: "난류", 2: "우유", 3: "메밀", 4: "땅콩", 5: "대두", 6: "밀",
+      7: "고등어", 8: "게", 9: "새우", 10: "돼지고기", 11: "복숭아",
+      12: "토마토", 13: "아황산류", 14: "호두", 15: "닭고기", 16: "쇠고기",
+      17: "오징어", 18: "조개류(굴,전복,홍합 포함)", 19: "잣"
+    };
 
-      // --- 액션 ---
-      {
-        title: "엘든 링",
-        genre: "액션",
-        desc: "광활한 오픈월드 속에서 펼쳐지는 압도적 몰입감의 다크 판타지 액션.",
-        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500"
-      },
-      {
-        title: "산나비 (SANABI)",
-        genre: "액션",
-        desc: "조선 사이버펑크 세계관을 배경으로 사슬갈고리를 활용한 스피디한 플랫포머 액션.",
-        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500"
-      },
-      {
-        title: "몬스터 헌터 월드",
-        genre: "액션",
-        desc: "웅장한 자연 속에서 거대한 몬스터를 수렵하는 타격감 넘치는 액션 게임.",
-        image: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500"
-      },
-      {
-        title: "하데스 (Hades)",
-        genre: "액션",
-        desc: "지옥을 탈출하려는 저승의 왕자의 이야기를 다룬 화려하고 중독성 높은 로그라이크 액션.",
-        image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=500"
-      },
+    const SPICY_KEYWORDS = {
+      5: ["불닭", "핵매운", "마라탕", "마라샹궈", "매운닭발"],
+      4: ["떡볶이", "제육볶음", "김치찌개", "짬뽕", "낙지볶음", "쫄면", "비빔국수", "매운돼지갈비찜"],
+      3: ["김치볶음밥", "부대찌개", "닭갈비", "순두부찌개", "카레", "양념치킨"],
+      2: ["배추김치", "깍두기", "열무김치", "아삭이고추"],
+      1: ["백김치", "단무지", "계란국", "미역국", "불고기", "계란말이"]
+    };
 
-      // --- FPS/슈팅 ---
-      {
-        title: "오버워치 2",
-        genre: "FPS/슈팅",
-        desc: "다양한 영웅들의 고유 기술을 활용해 협동하여 싸우는 하이퍼 슈팅 게임.",
-        image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=500"
-      },
-      {
-        title: "발로란트 (VALORANT)",
-        genre: "FPS/슈팅",
-        desc: "정교한 사격과 캐릭터별 전술 스킬이 결합된 5v5 전술 정밀 슈팅 게임.",
-        image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=500"
-      },
-      {
-        title: "에이펙스 레전드",
-        genre: "FPS/슈팅",
-        desc: "스피디한 이동과 독특한 레전드 스킬을 기반으로 한 스쿼드 배틀로얄 슈팅.",
-        image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500"
-      },
-      {
-        title: "배틀그라운드",
-        genre: "FPS/슈팅",
-        desc: "100명의 플레이어가 생존을 위해 경쟁하는 파밍과 전략 중심의 배틀로얄.",
-        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500"
-      },
+    // --- DOM Elements ---
+    const landingScreen = document.getElementById('landingScreen');
+    const mainAppScreen = document.getElementById('mainAppScreen');
+    const startAppBtn = document.getElementById('startAppBtn');
+    const quickDemoBtn = document.getElementById('quickDemoBtn');
+    const goHomeBtn = document.getElementById('goHomeBtn');
+    const resetProfileBtn = document.getElementById('resetProfileBtn');
+    const spicyLevel = document.getElementById('spicyLevel');
+    const spicyBadge = document.getElementById('spicyBadge');
+    const allergyContainer = document.getElementById('allergyContainer');
+    const menuInput = document.getElementById('menuInput');
+    const presetBtn1 = document.getElementById('presetBtn1');
+    const presetBtn2 = document.getElementById('presetBtn2');
+    const analyzeMealBtn = document.getElementById('analyzeMealBtn');
+    const analysisResultSection = document.getElementById('analysisResultSection');
 
-      // --- 힐링/시뮬레이션 ---
-      {
-        title: "모여봐요 동물의 숲",
-        genre: "힐링/시뮬",
-        desc: "무인도에서 귀여운 동물 주민들과 함께 나만의 섬을 꾸미는 힐링 게임.",
-        image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=500"
-      },
-      {
-        title: "스타듀 밸리",
-        genre: "힐링/시뮬",
-        desc: "시골 마을에서 농사를 짓고 가축을 키우며 주민들과 교류하는 귀여운 도트 게임.",
-        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500"
-      },
-      {
-        title: "데이브 더 다이버",
-        genre: "힐링/시뮬",
-        desc: "낮에는 신비로운 바다를 탐험하고 밤에는 초밥집을 운영하는 하이브리드 해양 어드벤처.",
-        image: "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=500"
-      },
-      {
-        title: "심즈 4 (The Sims 4)",
-        genre: "힐링/시뮬",
-        desc: "나만의 캐릭터를 만들고 집을 건축하며 다양한 삶의 순간을 구현하는 인생 시뮬레이션.",
-        image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500"
-      },
+    // --- Init ---
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAllergyCheckboxes();
+    });
 
-      // --- 전략 ---
-      {
-        title: "문명 VI",
-        genre: "전략",
-        desc: "석기 시대부터 현대까지 자신만의 제국을 건설하고 발전시키는 턴제 전략 게임.",
-        image: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=500"
-      },
-      {
-        title: "스타크래프트 리마스터",
-        genre: "전략",
-        desc: "테란, 저그, 프로토스 세 종족의 치열한 전쟁을 다룬 실시간 전략(RTS)의 전설.",
-        image: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500"
-      },
-      {
-        title: "클래시 로얄",
-        genre: "전략",
-        desc: "카드 덱을 구성하여 실시간으로 상대 타워를 공략하는 빠른 템포의 전략 카드 게임.",
-        image: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=500"
-      },
-      {
-        title: "팀파이트 타쿠틱스 (TFT / 롤토체스)",
-        genre: "전략",
-        desc: "챔피언 조합과 아이템 배치를 고려하여 최후의 1인이 될 때까지 겨루는 오토배틀러 전략.",
-        image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=500"
-      }
-    ];
-
-    // 화면에 게임 카드 목록을 출력하는 함수
-    function renderGames(list) {
-      const grid = document.getElementById('gameGrid');
-      grid.innerHTML = '';
-
-      if (list.length === 0) {
-        grid.innerHTML = `<div class="empty-message">해당 장르의 추천 게임이 없습니다.</div>`;
-        return;
-      }
-
-      list.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.innerHTML = `
-          <img src="${game.image}" alt="${game.title}">
-          <div class="card-content">
-            <span class="card-badge">${game.genre}</span>
-            <h3 class="card-title">${game.title}</h3>
-            <p class="card-desc">${game.desc}</p>
-          </div>
+    // Render Allergy Checkboxes
+    function renderAllergyCheckboxes() {
+      allergyContainer.innerHTML = '';
+      Object.entries(NEIS_ALLERGIES).forEach(([id, name]) => {
+        const label = document.createElement('label');
+        label.className = "flex items-center space-x-1.5 p-1.5 rounded bg-slate-50 hover:bg-slate-100 cursor-pointer border border-slate-100 transition";
+        label.innerHTML = `
+          <input type="checkbox" value="${id}" class="allergy-check rounded text-indigo-600 focus:ring-indigo-500">
+          <span class="text-slate-700">${id}. ${name}</span>
         `;
-        grid.appendChild(card);
+        allergyContainer.appendChild(label);
       });
     }
 
-    // 장르 선택 처리 함수
-    function selectGenre(genre, button) {
-      // 모든 버튼 활성화 해제 후 클릭한 버튼만 활성화
-      const buttons = document.querySelectorAll('.genre-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
+    // --- Screen Navigation ---
+    function openMainApp() {
+      landingScreen.classList.add('hidden');
+      mainAppScreen.classList.remove('hidden');
+      mainAppScreen.classList.add('flex');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-      if (genre === '전체') {
-        renderGames(gameList);
-      } else {
-        const filtered = gameList.filter(game => game.genre === genre);
-        renderGames(filtered);
+    function openLanding() {
+      mainAppScreen.classList.add('hidden');
+      mainAppScreen.classList.remove('flex');
+      landingScreen.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    startAppBtn.addEventListener('click', openMainApp);
+    goHomeBtn.addEventListener('click', openLanding);
+
+    quickDemoBtn.addEventListener('click', () => {
+      openMainApp();
+      loadPreset1();
+      setTimeout(() => analyzeMeal(), 200);
+    });
+
+    // --- Spicy Level Slider ---
+    spicyLevel.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const badges = {
+        1: "Lv.1 (순한맛)", 2: "Lv.2 (진라면 순한맛)", 3: "Lv.3 (신라면)",
+        4: "Lv.4 (불닭볶음면)", 5: "Lv.5 (핵불닭)"
+      };
+      spicyBadge.textContent = badges[val];
+    });
+
+    // --- Presets ---
+    function loadPreset1() {
+      menuInput.value = "차조밥\n해물짬뽕국5.6.8.9.10.13.17.18.\n매운돼지갈비찜10.13.\n계란말이1.5.\n배추김치9.13.\n멜론";
+    }
+
+    function loadPreset2() {
+      menuInput.value = "현미밥\n맑은콩나물국5.\n궁중소불고기5.6.16.\n시금치나물\n백김치\n사과";
+    }
+
+    presetBtn1.addEventListener('click', loadPreset1);
+    presetBtn2.addEventListener('click', loadPreset2);
+
+    // --- Reset Profile ---
+    resetProfileBtn.addEventListener('click', () => {
+      spicyLevel.value = 3;
+      spicyBadge.textContent = "Lv.3 (신라면)";
+      document.getElementById('dietaryPreference').value = "all";
+      document.querySelectorAll('.allergy-check').forEach(cb => cb.checked = false);
+      menuInput.value = '';
+      analysisResultSection.classList.add('hidden');
+    });
+
+    // --- Meal Analysis Engine ---
+    function analyzeMeal() {
+      const rawText = menuInput.value.trim();
+      if (!rawText) {
+        alert("분석할 급식 메뉴를 입력해주세요.");
+        return;
       }
+
+      const lines = rawText.split('\n').filter(l => l.trim().length > 0);
+      const userSpicy = parseInt(spicyLevel.value);
+      const userPref = document.getElementById('dietaryPreference').value;
+      const selectedAllergies = Array.from(document.querySelectorAll('.allergy-check:checked')).map(c => parseInt(c.value));
+
+      let score = 100;
+      let allergyAlerts = [];
+      let spicyAlerts = [];
+      let preferenceNotes = [];
+
+      lines.forEach(line => {
+        // Extract Allergy Codes
+        const match = line.match(/\d+(\.\d+)*/g);
+        let allergyNums = [];
+        if (match) {
+          allergyNums = match.join('.').split('.').map(n => parseInt(n)).filter(n => !isNaN(n));
+        }
+        const cleanName = line.replace(/[0-9.()]/g, '').trim();
+
+        // 1. Allergy Check
+        const foundAllergies = allergyNums.filter(a => selectedAllergies.includes(a));
+        if (foundAllergies.length > 0) {
+          const names = foundAllergies.map(f => NEIS_ALLERGIES[f]).join(', ');
+          allergyAlerts.push(`<b>${cleanName}</b> (${names} 포함)`);
+          score -= 25;
+        }
+
+        // 2. Spicy Keyword Check
+        let detectedSpicyLevel = 1;
+        Object.entries(SPICY_KEYWORDS).forEach(([lvl, keywords]) => {
+          keywords.forEach(kw => {
+            if (cleanName.includes(kw)) {
+              detectedSpicyLevel = Math.max(detectedSpicyLevel, parseInt(lvl));
+            }
+          });
+        });
+
+        if (detectedSpicyLevel > userSpicy) {
+          spicyAlerts.push(`<b>${cleanName}</b> (추정 맵기 Lv.${detectedSpicyLevel} > 설정 Lv.${userSpicy})`);
+          score -= 10;
+        }
+
+        // 3. Dietary Preference Note
+        if (userPref === 'veggie' && (cleanName.includes('갈비') || cleanName.includes('불고기') || cleanName.includes('제육') || cleanName.includes('치킨'))) {
+          preferenceNotes.push(`<b>${cleanName}</b> (육류 포함 메뉴)`);
+        }
+      });
+
+      // Render Results
+      document.getElementById('suitabilityScore').textContent = `${Math.max(0, score)}점`;
+
+      // Allergy Box
+      const allergyBox = document.getElementById('allergyAlertBox');
+      if (allergyAlerts.length > 0) {
+        allergyBox.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-sm";
+        allergyBox.innerHTML = `<h4 class="font-bold flex items-center gap-1.5 mb-1 text-rose-900"><i class="fa-solid fa-triangle-exclamation text-rose-600"></i> 알레르기 유발 주의 (${allergyAlerts.length}건)</h4>` + allergyAlerts.join('<br/>');
+      } else {
+        allergyBox.className = "p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-sm";
+        allergyBox.innerHTML = `<h4 class="font-bold flex items-center gap-1.5 text-emerald-900"><i class="fa-solid fa-circle-check text-emerald-600"></i> 알레르기 안전</h4><p class="text-xs mt-1">설정한 알레르기 유발 성분이 감지되지 않았습니다.</p>`;
+      }
+
+      // Spicy Box
+      const spicyBox = document.getElementById('spicyAlertBox');
+      if (spicyAlerts.length > 0) {
+        spicyBox.className = "p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-800 text-sm";
+        spicyBox.innerHTML = `<h4 class="font-bold flex items-center gap-1.5 mb-1 text-amber-900"><i class="fa-solid fa-pepper-hot text-amber-600"></i> 맵기 기준 초과 메뉴 (${spicyAlerts.length}건)</h4>` + spicyAlerts.join('<br/>');
+      } else {
+        spicyBox.className = "p-4 rounded-xl border bg-slate-50 border-slate-200 text-slate-700 text-sm";
+        spicyBox.innerHTML = `<h4 class="font-bold flex items-center gap-1.5 text-slate-800"><i class="fa-solid fa-circle-check text-emerald-500"></i> 맵기 적합</h4><p class="text-xs mt-1 text-slate-500">설정하신 맵기 단계 범위 내의 식단입니다.</p>`;
+      }
+
+      // Preference Box
+      const preferenceBox = document.getElementById('preferenceAlertBox');
+      if (preferenceNotes.length > 0) {
+        preferenceBox.className = "p-4 rounded-xl border bg-indigo-50 border-indigo-200 text-indigo-900 text-sm";
+        preferenceBox.innerHTML = `<h4 class="font-bold flex items-center gap-1.5 mb-1 text-indigo-900"><i class="fa-solid fa-seedling text-indigo-600"></i> 식성 스타일 참고 사항</h4>` + preferenceNotes.join('<br/>');
+      } else {
+        preferenceBox.className = "hidden";
+      }
+
+      analysisResultSection.classList.remove('hidden');
+      analysisResultSection.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 랜덤 게임 1개 선택 기능
-    function pickRandomGame() {
-      const buttons = document.querySelectorAll('.genre-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
-
-      const randomIndex = Math.floor(Math.random() * gameList.length);
-      const selectedGame = [gameList[randomIndex]];
-      
-      renderGames(selectedGame);
-    }
-
-    // 처음 페이지 로드 시 전체 게임 표시
-    renderGames(gameList);
+    analyzeMealBtn.addEventListener('click', analyzeMeal);
   </script>
-
 </body>
 </html>
